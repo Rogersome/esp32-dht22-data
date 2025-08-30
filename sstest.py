@@ -52,4 +52,5 @@ while True:
             st.warning("No data found.")
 
     time.sleep(REFRESH_INTERVAL)
-    st.experimental_rerun()
+    st.rerun()
+
