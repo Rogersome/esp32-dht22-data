@@ -1,38 +1,47 @@
 import streamlit as st
 import pandas as pd
-import requests
 import io
-from streamlit_autorefresh import st_autorefresh
+import requests
+import plotly.express as px
 
+# --- CONFIG ---
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/Rogersome/esp32-dht22-data/main/data.csv"
+st.set_page_config(page_title="ESP32 DHT22 Visualizer", layout="centered")
 
-st.set_page_config(page_title="ESP32 DHT22 Dashboard", layout="wide")
-
-st.sidebar.title("⏱️ Auto Refresh")
-refresh_seconds = st.sidebar.slider("Refresh every...", min_value=5, max_value=60, value=10, step=5)
-st_autorefresh(interval=refresh_seconds * 1000, key="auto_refresh")
-
-@st.cache_data(ttl=refresh_seconds)
+# --- DATA LOADER ---
+@st.cache_data(ttl=60)
 def load_data():
-    response = requests.get(GITHUB_RAW_URL)
-    if response.status_code == 200:
-        return pd.read_csv(io.StringIO(response.text))
+    r = requests.get(GITHUB_RAW_URL)
+    if r.status_code == 200:
+        df = pd.read_csv(io.StringIO(r.text))
+        df.columns = ["Time", "Temperature", "Humidity"]
+        df["Time"] = pd.to_datetime(df["Time"])
+        return df
     else:
-        st.error("❌ Failed to load data from GitHub")
         return pd.DataFrame()
 
 df = load_data()
 
+# --- SELECT & DISPLAY ---
+st.title("🔍 Explore Individual Sensor Reading")
+
 if not df.empty:
-    df.columns = ["Time", "Temperature", "Humidity"]
-    df["Time"] = pd.to_datetime(df["Time"])
+    # Allow selecting one row by timestamp
+    time_options = df["Time"].dt.strftime("%Y-%m-%d %H:%M:%S").tolist()
+    selected_time = st.selectbox("Select a timestamp", time_options[::-1])  # newest first
 
-    st.title("🌡️ ESP32 DHT22 Real-Time Dashboard")
-    st.caption("Live data from GitHub (Auto refresh every {} sec)".format(refresh_seconds))
+    selected_row = df[df["Time"].dt.strftime("%Y-%m-%d %H:%M:%S") == selected_time]
 
-    st.line_chart(df.set_index("Time")[["Temperature", "Humidity"]])
+    st.write("### 📋 Selected Record")
+    st.dataframe(selected_row, use_container_width=True)
 
-    st.dataframe(df.tail(10), use_container_width=True)
+    st.write("### 📈 Point Highlight")
+    fig = px.line(df.tail(100), x="Time", y=["Temperature", "Humidity"], markers=True)
+    fig.add_scatter(x=selected_row["Time"], y=selected_row["Temperature"], mode='markers+text',
+                    name="Selected Temp", text=["🌡️"], textposition="top center")
+    fig.add_scatter(x=selected_row["Time"], y=selected_row["Humidity"], mode='markers+text',
+                    name="Selected Humid", text=["💧"], textposition="bottom center")
+    st.plotly_chart(fig, use_container_width=True)
 
 else:
     st.warning("No data available.")
