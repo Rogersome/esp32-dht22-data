@@ -89,11 +89,11 @@ streamlit run app.py
 
 **Live Updating Mode:**
 
-![Live Chart](https://github.com/Rogersome/esp32-dht22-data/blob/main/assets/live-chart-preview.png)
+
 
 **Historical View Mode:**
 
-![Historical View](https://github.com/Rogersome/esp32-dht22-data/blob/main/assets/historical-mode-preview.png)
+
 
 ---
 
