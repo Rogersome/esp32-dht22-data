@@ -35,7 +35,7 @@ if df.empty:
 
 # 🔁 Live View Mode
 if page == "Live View":
-    st_autorefresh(interval=10_000, key="auto_refresh")
+    st_autorefresh(interval=5000, key="auto_refresh")
     st.subheader("📡 Real-Time Sensor Data")
 
     # Optional date filter (still useful here)
@@ -81,3 +81,4 @@ elif page == "Historical View":
         st.plotly_chart(fig, use_container_width=True)
 
         st.dataframe(day_data.tail(20), use_container_width=True)
+
