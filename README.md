@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/22112936/README.md)
 
 # 🌡️ ESP32 DHT22 Sensor Logger & Streamlit Dashboard
 
