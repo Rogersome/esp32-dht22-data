@@ -62,6 +62,7 @@ if not df.empty:
     st.title("🌡️ ESP32 DHT22 Sensor Dashboard")
     st.markdown(f"#### **Status:** <span style='color:{status_color}'>{status_text}</span>", unsafe_allow_html=True)
     st.caption("Real-time IoT monitoring | Auto-refresh every 10s")
+    st.markdown(f"**Last Data Received:** `{last_time}`")
 
     # ---- MODE SWITCH ----
     mode = st.radio("Mode", ["Live Update", "Historical Mode"], horizontal=True)
@@ -102,4 +103,5 @@ if not df.empty:
 
 else:
     st.warning("⚠️ No data available to display.")
+
 
