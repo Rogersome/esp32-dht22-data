@@ -29,16 +29,20 @@ def load_data():
 # ---------- DEVICE STATUS CHECK ----------
 def get_device_status(df):
     if df.empty:
-        return "❔ Unknown", "gray", "N/A"
+        return "❔ Unknown", "gray", "N/A", "N/A", "N/A"
+
     last_time = df["Time"].max()
     if last_time.tzinfo is None:
-        last_time = last_time.tz_localize("UTC")
+        last_time = last_time.tz_localize("Asia/Taipei") 
+    last_time_utc = last_time.astimezone(timezone.utc)  
+
     now_utc = datetime.now(timezone.utc)
-    diff = (now_utc - last_time).total_seconds()
-    if diff < 10:
-        return "🟢 Online", "green", last_time.strftime("%Y-%m-%d %H:%M:%S"), now_utc, diff
+    diff = (now_utc - last_time_utc).total_seconds()
+
+    if diff < 30:  # consider device online if data within last 30 sec
+        return "🟢 Online", "green", last_time_utc.strftime("%Y-%m-%d %H:%M:%S"), now_utc.strftime("%Y-%m-%d %H:%M:%S"), diff
     else:
-        return "🔴 Offline", "red", last_time.strftime("%Y-%m-%d %H:%M:%S"), now_utc, diff
+        return "🔴 Offline", "red", last_time_utc.strftime("%Y-%m-%d %H:%M:%S"), now_utc.strftime("%Y-%m-%d %H:%M:%S"), diff
 
 # ---------- MAIN ----------
 df = load_data()
@@ -83,6 +87,7 @@ if not df.empty:
     st.download_button("⬇️ Download CSV", csv, "esp32_data.csv", "text/csv")
 else:
     st.warning("No data to display.")
+
 
 
 
