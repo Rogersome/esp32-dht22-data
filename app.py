@@ -9,7 +9,7 @@ from streamlit_autorefresh import st_autorefresh
 # ---------- CONFIG ----------
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/Rogersome/esp32-dht22-data/main/data.csv"
 st.set_page_config(page_title="ESP32 DHT22 Dashboard", layout="wide")
-st_autorefresh(interval=10_000, key="auto_refresh")  # Refresh every 10 seconds
+st_autorefresh(interval=5_000, key="auto_refresh")  
 
 # ---------- LOAD CSV FROM GITHUB ----------
 @st.cache_data(ttl=10)
@@ -39,22 +39,22 @@ def get_device_status(df):
     now_utc = datetime.now(timezone.utc)
     diff = (now_utc - last_time_utc).total_seconds()
 
-    if diff > 10:  # consider device online if data within last 30 sec
-        return "🟢 Online", "green", last_time_utc.strftime("%Y-%m-%d %H:%M:%S"), now_utc.strftime("%Y-%m-%d %H:%M:%S"), diff
+    if diff > 10:  
+        return "🟢 Online", "green", last_time_utc.strftime("%Y-%m-%d %H:%M:%S"), now_utc.strftime("%Y-%m-%d %H:%M:%S")
     else:
-        return "🔴 Offline", "red", last_time_utc.strftime("%Y-%m-%d %H:%M:%S"), now_utc.strftime("%Y-%m-%d %H:%M:%S"), diff
+        return "🔴 Offline", "red", last_time_utc.strftime("%Y-%m-%d %H:%M:%S"), now_utc.strftime("%Y-%m-%d %H:%M:%S")
 
 # ---------- MAIN ----------
 df = load_data()
 
 if not df.empty:
-    status_text, status_color, last_seen, curtime, time_diff = get_device_status(df)
+    status_text, status_color, last_seen, curtime = get_device_status(df)
 
     st.title("🌡️ ESP32 DHT22 Sensor Dashboard")
     st.markdown(f"#### **Status:** <span style='color:{status_color}'>{status_text}</span>", unsafe_allow_html=True)
     st.caption(f"📡 Last data received at: `{last_seen}` (UTC)")
     st.caption(f"current time: {curtime}")
-    st.caption(f"time different: {time_diff}")
+    #st.caption(f"time different: {time_diff}")
     st.caption("🔁 Auto-refresh every 10 seconds")
 
     # ---------- MODE TOGGLE ----------
@@ -87,6 +87,7 @@ if not df.empty:
     st.download_button("⬇️ Download CSV", csv, "esp32_data.csv", "text/csv")
 else:
     st.warning("No data to display.")
+
 
 
 
