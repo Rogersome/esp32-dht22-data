@@ -36,9 +36,9 @@ def get_device_status(df):
     now_utc = datetime.now(timezone.utc)
     diff = (now_utc - last_time).total_seconds()
     if diff < 10:
-        return "🟢 Online", "green", last_time.strftime("%Y-%m-%d %H:%M:%S",now_utc)
+        return "🟢 Online", "green", last_time.strftime("%Y-%m-%d %H:%M:%S"), now_utc
     else:
-        return "🔴 Offline", "red", last_time.strftime("%Y-%m-%d %H:%M:%S",now_utc)
+        return "🔴 Offline", "red", last_time.strftime("%Y-%m-%d %H:%M:%S"), now_utc
 
 # ---------- MAIN ----------
 df = load_data()
@@ -82,4 +82,5 @@ if not df.empty:
     st.download_button("⬇️ Download CSV", csv, "esp32_data.csv", "text/csv")
 else:
     st.warning("No data to display.")
+
 
