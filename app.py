@@ -3,6 +3,7 @@ import pandas as pd
 import io
 import requests
 import plotly.express as px
+from datetime import datetime, timezone
 from streamlit_autorefresh import st_autorefresh
 
 # ---- CONFIG ----
@@ -29,22 +30,37 @@ def load_data():
 
 df, is_online = load_data()
 
-# ---- OFFLINE INDICATOR ----
-st.sidebar.markdown("### Connection Status")
+# ---- DEVICE STATUS CHECK ----
+def get_device_status(df):
+    if df.empty:
+        return "Unknown ❔", "gray"
+    last_time = df["Time"].max()
+    now_utc = datetime.now(timezone.utc)
+    diff = (now_utc - last_time).total_seconds()
+    if diff < 30:  # ESP32 is expected to upload every 10s
+        return "🟢 Device Online", "green"
+    else:
+        return "🔴 Device Offline", "red"
+
+# ---- SIDEBAR ----
+st.sidebar.markdown("### GitHub Sync Status")
 if is_online:
-    st.sidebar.success("🟢 Online - Data fetched from GitHub")
+    st.sidebar.success("🟢 Connected to GitHub")
 else:
-    st.sidebar.error("🔴 Offline - Unable to fetch data")
+    st.sidebar.error("🔴 GitHub Not Reachable")
 
-# ---- HISTORICAL MODE ----
-mode = st.sidebar.radio("Mode", ["Live Update", "Historical Mode"])
-
+# ---- MAIN ----
 if not df.empty:
+    status_text, status_color = get_device_status(df)
     st.title("🌡️ ESP32 DHT22 Sensor Dashboard")
-    st.caption("Live sensor feed via GitHub | Auto-refresh every 10s")
+    st.markdown(f"#### **Status:** <span style='color:{status_color}'>{status_text}</span>", unsafe_allow_html=True)
+    st.caption("Real-time IoT monitoring | Auto-refresh every 10s")
+
+    # ---- MODE SWITCH ----
+    mode = st.radio("Mode", ["Live Update", "Historical Mode"], horizontal=True)
 
     if mode == "Live Update":
-        st.subheader("📊 Real-Time Temperature & Humidity")
+        st.subheader("📊 Temperature & Humidity")
 
         fig = px.line(df, x="Time", y=["Temperature", "Humidity"],
                       labels={"value": "Reading", "variable": "Sensor"},
@@ -52,12 +68,11 @@ if not df.empty:
 
         st.plotly_chart(fig, use_container_width=True)
 
-        st.subheader("📄 Latest 20 Records")
+        st.subheader("📄 Latest Records")
         st.dataframe(df.tail(20), use_container_width=True)
 
-        # ---- DOWNLOAD ----
         csv = df.to_csv(index=False).encode("utf-8")
-        st.download_button("⬇️ Download CSV", csv, "latest_data.csv", "text/csv")
+        st.download_button("⬇️ Download Full CSV", csv, "data.csv", "text/csv")
 
     else:
         st.subheader("📁 Historical Mode")
