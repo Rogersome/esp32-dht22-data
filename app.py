@@ -6,6 +6,8 @@ import plotly.express as px
 from datetime import datetime, timezone
 from streamlit_autorefresh import st_autorefresh
 
+UTC_PLUS_8 = timezone(timedelta(hours=8))
+
 # ---------- CONFIG ----------
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/Rogersome/esp32-dht22-data/main/data.csv"
 st.set_page_config(page_title="ESP32 DHT22 Dashboard", layout="wide")
@@ -36,7 +38,7 @@ def get_device_status(df):
         last_time = last_time.tz_localize("Asia/Taipei") 
     last_time_utc = last_time.astimezone(timezone.utc)  
 
-    now_utc = datetime.now(timezone.utc)
+    now_utc = datetime.now(UTC_PLUS_8)
     diff = (now_utc - last_time_utc).total_seconds()
 
     if diff > 10:  
@@ -87,6 +89,7 @@ if not df.empty:
     st.download_button("⬇️ Download CSV", csv, "esp32_data.csv", "text/csv")
 else:
     st.warning("No data to display.")
+
 
 
 
