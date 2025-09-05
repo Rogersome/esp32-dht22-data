@@ -34,10 +34,17 @@ df, is_online = load_data()
 def get_device_status(df):
     if df.empty:
         return "Unknown ❔", "gray"
+
     last_time = df["Time"].max()
+    
+    # Make sure the datetime is timezone-aware
+    if last_time.tzinfo is None:
+        last_time = last_time.tz_localize("UTC")
+
     now_utc = datetime.now(timezone.utc)
     diff = (now_utc - last_time).total_seconds()
-    if diff < 30:  # ESP32 is expected to upload every 10s
+
+    if diff < 30:  # ESP32 uploads every 10s, give buffer
         return "🟢 Device Online", "green"
     else:
         return "🔴 Device Offline", "red"
@@ -95,3 +102,4 @@ if not df.empty:
 
 else:
     st.warning("⚠️ No data available to display.")
+
